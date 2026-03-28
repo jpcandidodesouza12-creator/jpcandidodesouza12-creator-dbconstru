@@ -1,6 +1,10 @@
 # 🐕 Dumb Construtor
 
+<<<<<<< HEAD
 Sistema de orçamento e gestão de obras residenciais — Campo Grande, MS.
+=======
+Sistema de orçamento e gestão de obras residenciais
+>>>>>>> 1986fb6ea7eaf9975841e95a4375cb4ddf78fae8
 
 ## Stack
 
