@@ -1,0 +1,101 @@
+// Dumb Construtor — Prisma Schema
+// Database: Neon PostgreSQL
+// Run: npx prisma migrate dev
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Neon serverless — use direct URL for migrations
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────────────────────────────────────
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  password    String    // bcrypt hash
+  role        Role      @default(USER)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  lastLoginAt DateTime? @map("last_login_at")
+
+  projects    Project[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SESSIONS (refresh tokens)
+// ─────────────────────────────────────────────────────────────────────────────
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique // hashed refresh token
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  userAgent String?  @map("user_agent")
+  ip        String?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROJECTS
+// ─────────────────────────────────────────────────────────────────────────────
+model Project {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  name        String   @default("Meu Projeto")
+  description String?
+  city        String   @default("Campo Grande")
+  state       String   @default("MS")
+  area        Float    @default(150)
+  standard    Standard @default(MED)
+  status      Status   @default(PLANNING)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // JSON blobs — flexible config per project
+  config      Json     @default("{}") // area, std, mo, cont, bdi, scenarios, etc
+  phases      Json     @default("[]") // overrides + progress per phase
+  risks       Json     @default("[]") // risk register
+  suppliers   Json     @default("{}") // suppliers per insumo
+  diary       Json     @default("[]") // diary entries
+  payments    Json     @default("{}") // payment schedule config
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("projects")
+}
+
+enum Standard {
+  LOW
+  MED
+  HIGH
+}
+
+enum Status {
+  PLANNING
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
