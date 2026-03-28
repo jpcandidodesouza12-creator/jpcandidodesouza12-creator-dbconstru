@@ -1,6 +1,6 @@
 # 🐕 Dumb Construtor
 
-Sistema de orçamento e gestão de obras residenciais — Campo Grande, MS.
+Sistema de orçamento e gestão de obras residenciais
 
 ## Stack
 
